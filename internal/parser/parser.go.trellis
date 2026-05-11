@@ -1,0 +1,50 @@
+@owner: TrellisProject
+@stability: stable
+@since: 2026-05-09
+@reviewed: 2026-05-10
+
+Feature: Parser Wrapper
+  "Single Trellis-aware entry point over the tree-sitter-trellis Go binding; isolates upgrades."
+
+  Provides:
+    - parser.Parse
+    - parser.ParseFile
+    - parser.Language
+
+  Consumes:
+    - tree_sitter_trellis.Language
+    - sitter.NewParser
+    - sitter.NewLanguage
+    - sitter.Parser
+
+  Invariants:
+    - All Trellis-aware code in this repo MUST go through this package, never importing the binding directly
+    - The Tree returned by Parse owns C memory; the caller MUST call Close on it
+    - ParseFile MUST return both the tree and the source bytes — node text extraction by byte range requires the source
+    - Parse SHALL NOT cache or share parser instances across calls (one Parser per Parse, closed before return)
+
+  OutOfScope:
+    - External-scanner support (slice 4 deferred to the linter — see TREE_SITTER_DECISIONS.md §slice-4)
+    - Incremental reparse (no editor consumer yet)
+    - Concurrent parsing of one tree
+
+  Scenario (happy-path): Parse a well-formed source string
+    Given valid Trellis source bytes
+    When Parse is called
+    Then it returns a non-nil Tree whose RootNode is named 'source_file'
+    And HasError on the root is false
+
+  Scenario (happy-path): ParseFile returns source for byte-range extraction
+    Given a path to a valid .trellis file on disk
+    When ParseFile is called
+    Then it returns the parsed tree AND the raw source bytes
+
+  Scenario (negative): ParseFile on a missing path
+    Given a path that does not exist
+    When ParseFile is called
+    Then it returns an error wrapping 'read'
+
+  Scenario (edge): Parse of an empty source
+    Given an empty byte slice
+    When Parse is called
+    Then it returns a Tree (parse errors are reported via HasError, not as Go errors)

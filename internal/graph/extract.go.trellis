@@ -1,0 +1,52 @@
+@owner: TrellisProject
+@stability: stable
+@since: 2026-05-09
+@reviewed: 2026-05-10
+@allow-many-consumes: "AST-to-Sidecar projection adapter; per-method coupling to tree-sitter's Node API is the binding's surface, not this file's design — the alternative is a wrapper-of-a-wrapper that adds no value"
+
+Feature: AST Projection
+  "Walks a parsed Trellis tree and materializes the Sidecar fields the graph cares about."
+
+  Provides:
+    - graph.Extract
+
+  Consumes:
+    - sitter.Tree
+    - sitter.Node
+    - graph.Sidecar
+    - graph.Entry
+    - graph.Handle
+    - graph.HandleKind
+    - graph.SourcePathFor
+
+  Invariants:
+    - Extract MUST NOT be called on a tree where HasError() is true — the parser is the source of truth for shape
+    - Extract SHALL produce only the Provides and Consumes lists; other context blocks are linter territory
+    - Description text MUST be preserved verbatim (whitespace-trimmed) and never interpreted
+    - Extract SHOULD silently skip AST nodes it does not recognize, on the principle that the grammar may extend without breaking the extractor
+
+  OutOfScope:
+    - Frontmatter parsing (separate concern)
+    - Scenario / step extraction (linter)
+    - Recovery from partial / error trees (responsibility of the caller)
+    - Per-language description-field validation
+
+  Scenario (happy-path): PathHandle entry with description
+    Given a handle_entry whose handle is path_handle 'Subscription.create' with trailing description
+    When Extract processes the surrounding tree
+    Then the Sidecar's Provides slice contains an Entry with Handle.Path='Subscription.create' and a non-empty Description
+
+  Scenario (happy-path): PrefixedHandle entry
+    Given a handle_entry whose handle is prefixed_handle Event:subscription.created
+    When Extract processes the tree
+    Then the Sidecar's Provides slice contains an Entry with Kind=PrefixedHandle, Prefix='Event', Path='subscription.created'
+
+  Scenario (negative): Tree without a feature node
+    Given a tree whose root has no 'feature' field
+    When Extract is called
+    Then it returns an error mentioning 'no feature'
+
+  Scenario (edge): Empty Provides block (no entries)
+    Given a feature with a Provides: block that has zero handle_entries (parser-impossible today, but tolerable)
+    When Extract is called
+    Then the resulting Sidecar.Provides slice is nil or empty (no panic)

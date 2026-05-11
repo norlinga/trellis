@@ -1,0 +1,21 @@
+@owner: PaymentsTeam
+@stability: stable
+@since: 2024-09-01
+@reviewed: 2026-04-02
+
+Feature: Payment Gateway
+  "Charges and refunds against a third-party payment processor."
+
+  Provides:
+    - PaymentGateway.charge(token, amount) -> ChargeResult
+    - PaymentGateway.refund(charge_id, amount) -> RefundResult
+
+  Scenario (happy-path): Successful charge
+    Given a valid payment token and a positive amount
+    When charge is invoked
+    Then a ChargeResult with status 'captured' is returned
+
+  Scenario (negative): Declined card
+    Given a token whose underlying card declines
+    When charge is invoked
+    Then it MUST raise PaymentError

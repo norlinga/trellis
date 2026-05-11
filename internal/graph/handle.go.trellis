@@ -1,0 +1,46 @@
+@owner: TrellisProject
+@stability: stable
+@since: 2026-05-09
+@reviewed: 2026-05-10
+
+Feature: Handle Type
+  "Canonical name a sidecar uses for graph matching: kind + optional prefix + dotted path."
+
+  Provides:
+    - graph.Handle
+    - graph.HandleKind
+    - graph.PathHandle
+    - graph.PrefixedHandle
+    - graph.Handle.String
+    - graph.Handle.Root
+
+  Invariants:
+    - Handle equality MUST be bit-for-bit on Kind, Prefix, and Path — case-sensitive
+    - String SHALL round-trip with the parser's tokenization for both kinds
+    - 'Subscription.Create' and 'subscription.create' MUST NOT compare equal
+    - Handles SHALL NOT be normalized, lowercased, or otherwise canonicalized at construction
+
+  OutOfScope:
+    - Fuzzy / semantic similarity matching (whitepaper §4.4 — separate, expensive feature)
+    - Per-language signature parsing (description carries that information opaquely)
+    - Cross-handle aliasing or rewrite tables
+
+  Scenario (happy-path): PathHandle round-trips
+    Given a Handle with Kind=PathHandle and Path='Subscription.create'
+    Then String returns 'Subscription.create'
+
+  Scenario (happy-path): PrefixedHandle round-trips
+    Given a Handle with Kind=PrefixedHandle, Prefix='Event', Path='subscription.created'
+    Then String returns 'Event:subscription.created'
+
+  Scenario (happy-path): Root is the leftmost segment
+    Given a Handle with Path='Subscription.create.attempt'
+    Then Root returns 'Subscription'
+
+  Scenario (edge): Single-segment path returns itself as Root
+    Given a Handle with Path='Solo'
+    Then Root returns 'Solo'
+
+  Scenario (negative): Case-different handles are not equal
+    Given two handles with paths 'Foo.Bar' and 'foo.bar'
+    Then equality MUST return false

@@ -1,0 +1,31 @@
+# Example: layered + stability-tier architectural policy
+#
+# Drop a copy at <repo>/policies/architecture.trellis-policy (or any other
+# path outside an `examples/` directory) to make `trellis lint` enforce
+# these rules across the workspace.
+#
+# Sidecars opt in by declaring `@layer:` and `@stability:` frontmatter:
+#
+#   @layer: domain
+#   @stability: stable
+#
+# Sidecars without those keys are excluded from the corresponding rule
+# set — the absence of a layer is "not part of any layer constraint",
+# not a violation.
+#
+# Verbs:
+#   - MUST NOT consume <X>  → enforced; a violating Consumes edge errors.
+#   - MAY consume <X>        → parsed and validated, but currently
+#                              informational. A future "default-deny"
+#                              mode will enforce that the inverse of
+#                              every MAY rule is forbidden.
+
+layer_dependencies:
+  - domain MUST NOT consume infrastructure
+  - domain MUST NOT consume application
+  - application MAY consume domain
+  - infrastructure MAY consume domain
+
+stability_tiers:
+  - stable MUST NOT consume experimental
+  - stable MUST NOT consume deprecated

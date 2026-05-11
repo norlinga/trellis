@@ -1,0 +1,80 @@
+@owner: TrellisProject
+@stability: experimental
+@since: 2026-05-09
+@reviewed: 2026-05-10
+
+Feature: Dependency Graph
+  "Builds the resolved Provides/Consumes graph and exposes the four core whitepaper queries."
+
+  Provides:
+    - graph.Build
+    - graph.Graph
+    - graph.Edge
+    - graph.UnresolvedConsume
+    - graph.Graph.Lookup
+    - graph.Graph.Deps
+    - graph.Graph.Dependents
+    - graph.Graph.Downstream
+    - graph.Graph.Orphans
+    - graph.Graph.DuplicateProvides
+
+  Consumes:
+    - graph.Sidecar
+    - graph.Entry
+    - graph.Handle
+
+  Invariants:
+    - A Consumes handle MUST resolve to every Sidecar whose Provides contains an equal handle (multi-resolution → multiple edges)
+    - A Consumes handle with no matching Provides MUST be recorded as UnresolvedConsume, never silently dropped
+    - Self-edges (a Sidecar consuming what it provides) MUST be emitted; the linter decides whether to warn
+    - Build MUST NOT mutate input Sidecar values
+    - All slices and maps returned by query methods SHALL be treated as read-only by callers
+    - DuplicateProvides MUST use exact handle equality only — fuzzy matching is an explicit non-goal here
+
+  OutOfScope:
+    - Source-file existence verification (orphan-by-missing-source is a different signal at a higher layer)
+    - Fuzzy duplicate detection (whitepaper §4.4 — deferred indefinitely at the graph layer)
+    - Mutation API (insert / remove sidecars after Build)
+
+  Scenario (happy-path): Single resolved edge
+    Given two sidecars, one Provides 'Foo.bar' and one Consumes 'Foo.bar'
+    When Build runs
+    Then the resulting Graph has exactly one Edge from consumer to producer
+
+  Scenario (happy-path): Reverse lookup
+    Given a graph with an edge from A to B
+    When Dependents is called on B
+    Then the returned slice contains an Edge whose From is A
+
+  Scenario (negative): Unresolved consume
+    Given a Sidecar that Consumes a handle no other sidecar provides
+    When Build runs
+    Then the Graph's Unresolved list contains exactly that pair (sidecar, handle)
+    And no Edge is created for it
+
+  Scenario (edge): Multiple providers of one handle
+    Given two sidecars Provide the same handle and one sidecar Consumes it
+    When Build runs
+    Then the consumer has two outbound edges, one to each provider
+    And DuplicateProvides reports that handle
+
+  Scenario (edge): Orphan provider
+    Given a Sidecar that Provides 'Lonely.func' which no other sidecar Consumes
+    When Orphans is called
+    Then the returned slice includes that Sidecar
+
+  Scenario (happy-path): Downstream reaches transitive dependents
+    Given a chain A → B → C of resolved Consumes/Provides edges
+    When Downstream is called on A
+    Then the result contains both B and C
+    And B appears before C (BFS order; closer dependents first)
+
+  Scenario (edge): Downstream tolerates cycles
+    Given a graph with a cycle A → B → A
+    When Downstream is called on A
+    Then the result is finite and each sidecar appears at most once
+
+  Scenario (negative): Empty Provides is not orphaned
+    Given a Sidecar with zero Provides entries
+    When Orphans is called
+    Then that Sidecar MUST NOT appear in the result (different lint signal)

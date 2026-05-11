@@ -1,0 +1,16 @@
+@owner: AnalyticsTeam
+@stability: experimental
+@since: 2026-02-14
+@reviewed: 2026-04-30
+
+Feature: Subscription Analytics
+  "Records subscription lifecycle events into the analytics warehouse."
+
+  Consumes:
+    - Event: subscription.created
+    - Event: subscription.cancelled
+
+  Scenario (happy-path): Created event recorded
+    Given a 'subscription.created' event arrives
+    When the analytics consumer processes it
+    Then a row is appended to the subscriptions_created warehouse table

@@ -1,0 +1,70 @@
+{
+  "name": "trellis-vscode",
+  "displayName": "Trellis",
+  "description": "Language support for Trellis sidecar files (.trellis)",
+  "version": "0.1.0",
+  "publisher": "norlinga",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/norlinga/trellis.git",
+    "directory": "editors/vscode"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onLanguage:trellis"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "trellis",
+        "aliases": ["Trellis", "trellis"],
+        "extensions": [".trellis"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "trellis",
+        "scopeName": "source.trellis",
+        "path": "./syntaxes/trellis.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "Trellis",
+      "properties": {
+        "trellis.executable": {
+          "type": "string",
+          "default": "trellis",
+          "description": "Path to the trellis binary. Use an absolute path if it isn't on $PATH."
+        },
+        "trellis.trace.server": {
+          "type": "string",
+          "enum": ["off", "messages", "verbose"],
+          "default": "off",
+          "description": "Trace LSP traffic between VS Code and trellis lsp."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "npm run compile"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0"
+  }
+}

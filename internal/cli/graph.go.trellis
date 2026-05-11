@@ -1,0 +1,51 @@
+@owner: TrellisProject
+@stability: experimental
+@since: 2026-05-09
+@reviewed: 2026-05-10
+@allow-many-consumes: "CLI subcommand wirer; cobra commands here genuinely depend on multiple graph types (Graph, Sidecar, Edge, LoadResult, Load) and the Load+Render coupling is the wirer's design, not a code smell"
+
+Feature: Graph Subcommands
+  "Wires the cobra subcommand tree under 'trellis graph' and renders results to stdout."
+
+  Provides:
+    - cli.newGraphCmd
+
+  Consumes:
+    - parser.ParseFile
+    - graph.Load
+    - graph.Graph
+    - graph.Sidecar
+    - graph.Edge
+    - graph.LoadResult
+    - cobra.Command
+
+  Invariants:
+    - 'graph parse' MUST exit non-zero when the parsed tree HasError, even if a tree was returned
+    - Sidecar lookup by basename MUST error on ambiguity rather than silently picking one
+    - Output paths SHOULD be rendered relative to the current working directory when shorter
+
+  OutOfScope:
+    - JSON / structured output (deferred until a programmatic consumer exists)
+    - Transitive closure queries (deferred — separate subcommand)
+    - Filesystem watch / incremental rebuild
+
+  Scenario (happy-path): graph parse prints S-expression
+    Given a well-formed .trellis file
+    When 'trellis graph parse <file>' runs
+    Then stdout contains the root node's S-expression
+
+  Scenario (negative): graph parse on a malformed file
+    Given a .trellis file whose tree HasError is true
+    When 'trellis graph parse <file>' runs
+    Then the command MUST exit non-zero
+    And stderr describes the failure
+
+  Scenario (happy-path): graph build summarizes the workspace
+    Given a directory containing 3 sidecars and 2 resolvable consumes
+    When 'trellis graph build' runs
+    Then stdout reports 'sidecars: 3' and 'resolved edges: 2'
+
+  Scenario (edge): graph deps with ambiguous basename
+    Given two sidecars share the same filename in different directories
+    When 'trellis graph deps <basename>' runs
+    Then the command errors with 'ambiguous' and lists both candidate paths

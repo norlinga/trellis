@@ -1,0 +1,40 @@
+@owner: TrellisProject
+@stability: stable
+@since: 2026-05-09
+@reviewed: 2026-05-10
+
+Feature: Sidecar Type
+  "In-memory representation of one parsed .trellis file from the graph's perspective."
+
+  Provides:
+    - graph.Sidecar
+    - graph.Entry
+    - graph.SourcePathFor
+
+  Consumes:
+    - graph.Handle
+
+  Invariants:
+    - Sidecar MUST hold only fields the graph layer reads — invariants, out-of-scope, frontmatter, and scenarios are deliberately omitted
+    - Entry.Description MUST be preserved verbatim from the source (decision #6 — opaque text, never interpreted)
+    - SourcePathFor MUST return an empty string for paths not ending in '.trellis' (caller treats as malformed)
+
+  OutOfScope:
+    - Frontmatter materialization (linter responsibility)
+    - Invariants / OutOfScope / scenario projection (linter and LSP)
+    - Source-file existence verification (separate layer that touches the filesystem)
+
+  Scenario (happy-path): Source path derivation
+    Given the sidecar path 'foo.rb.trellis'
+    When SourcePathFor is called
+    Then it returns 'foo.rb'
+
+  Scenario (negative): Non-sidecar path
+    Given the path 'foo.rb' (no .trellis suffix)
+    When SourcePathFor is called
+    Then it returns an empty string
+
+  Scenario (edge): Multi-extension source
+    Given the sidecar path 'a/b/widget.tsx.trellis'
+    When SourcePathFor is called
+    Then it returns 'a/b/widget.tsx'

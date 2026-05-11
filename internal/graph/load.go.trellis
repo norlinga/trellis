@@ -1,0 +1,60 @@
+@owner: TrellisProject
+@stability: experimental
+@since: 2026-05-09
+@reviewed: 2026-05-10
+@allow-many-consumes: "workspace loader composes parser + extractor + builder; coupling to those pipeline stages is structural and required for the load pass to be a single transactional operation"
+
+Feature: Workspace Loader
+  "Discovers .trellis files under one or more roots, parses each, and assembles the graph."
+
+  Provides:
+    - graph.Load
+    - graph.LoadResult
+    - graph.ParseError
+
+  Consumes:
+    - parser.ParseFile
+    - graph.Extract
+    - graph.Build
+    - graph.Graph
+    - graph.Sidecar
+
+  Invariants:
+    - Load MUST NOT abort on per-file parse failures — failures are returned as ParseErrs alongside the partial graph
+    - The walk MUST skip hidden directories (leading '.') below the root, so vendored caches do not dominate large repos
+    - The walk SHALL NOT follow symlinks (filepath.WalkDir behavior — preserved deliberately)
+    - Returned Sidecars MUST be sorted by absolute path so CLI output and tests are stable
+    - File paths in the returned graph SHALL be absolute (post-filepath.Abs)
+    - Trees with HasError() true MUST be rejected at load time — Extract is only called on clean trees
+
+  OutOfScope:
+    - Source-file pairing verification (the orphaned-source check)
+    - .trellisignore / glob exclusion (no real-world need yet)
+    - Concurrent / parallel parsing (single-threaded is fast enough for v1)
+    - Watch mode / incremental reload
+
+  Scenario (happy-path): Directory walk discovers all .trellis files
+    Given a directory tree containing N .trellis files (some nested in subdirectories)
+    When Load is called with that root
+    Then the graph contains exactly N Sidecars
+
+  Scenario (happy-path): File argument loads exactly one sidecar
+    Given a single .trellis file path passed as a root
+    When Load is called
+    Then the graph contains exactly that one Sidecar
+
+  Scenario (negative): One file fails to parse
+    Given a workspace where one .trellis file has a syntax error
+    When Load is called
+    Then the LoadResult.ParseErrs has one entry naming that file
+    And the Graph contains every other file's Sidecar
+
+  Scenario (edge): Hidden directory is skipped
+    Given a root containing '.git/something.trellis'
+    When Load is called
+    Then that file is NOT in the resulting graph
+
+  Scenario (edge): Multiple roots deduplicate
+    Given two overlapping roots that both reach the same .trellis file
+    When Load is called with both roots
+    Then the file appears exactly once in the graph

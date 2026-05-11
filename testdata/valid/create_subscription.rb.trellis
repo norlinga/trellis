@@ -1,0 +1,43 @@
+@owner: BillingTeam
+@stability: stable
+@composition: [Authenticatable, Payable]
+@since: 2025-11-04
+@reviewed: 2026-03-15
+
+Feature: Create Subscription
+  "Handles the idempotent creation of a user subscription and initial billing."
+
+  Provides:
+    - Subscription.create(user, plan_id) -> Subscription | raises PaymentError
+    - Event: subscription.created
+
+  Consumes:
+    - PaymentGateway.charge(token, amount) -> ChargeResult
+    - UserRecord (must respond to: id, email, payment_token)
+
+  Invariants:
+    - A user MUST NOT have two active 'pro' subscriptions
+    - Charges SHALL be idempotent on (user_id, plan_id, idempotency_key)
+
+  OutOfScope:
+    - Refunds (handled by RefundService)
+    - Plan upgrades (handled by ChangeSubscriptionPlan)
+
+  Scenario (happy-path): Successful checkout
+    Given a User with a valid stripe_token
+    When the create method is called with plan_id
+    Then a Subscription record is created
+    And the PaymentGateway receives a charge request
+    And the User status becomes active
+
+  Scenario (negative): Expired card
+    Given a User with an expired card
+    When the create method is called
+    Then it MUST raise PaymentError
+    And no Subscription record is created
+
+  Scenario (edge): Concurrent creation with same idempotency key
+    Given two simultaneous create calls with identical idempotency keys
+    When both are processed
+    Then exactly one Subscription record exists
+    And both callers receive the same Subscription

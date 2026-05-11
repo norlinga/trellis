@@ -1,0 +1,30 @@
+@owner: TrellisProject
+@stability: stable
+@since: 2026-05-09
+@reviewed: 2026-05-10
+
+Feature: Trellis CLI Entry Point
+  "Bootstraps the cobra command tree and translates errors into a non-zero exit."
+
+  Provides:
+    - main.main
+
+  Consumes:
+    - cli.Execute
+
+  Invariants:
+    - The process MUST exit with a non-zero status when Execute returns an error
+    - Errors MUST be written to stderr, not stdout, so stdout stays machine-readable for subcommands
+
+  OutOfScope:
+    - Logging configuration (no logger is wired here in v1)
+    - Signal handling
+
+  Scenario (happy-path): Successful subcommand
+    Given Execute returns nil
+    Then the process exits with status 0
+
+  Scenario (negative): Subcommand returns an error
+    Given Execute returns a non-nil error
+    Then the process writes 'trellis: <message>' to stderr
+    And exits with status 1

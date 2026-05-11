@@ -1,0 +1,37 @@
+@owner: TrellisProject
+@stability: stable
+@since: 2026-05-09
+@reviewed: 2026-05-10
+
+Feature: CLI Root Command
+  "Builds the top-level cobra command and attaches all subcommands."
+
+  Provides:
+    - cli.Execute
+
+  Consumes:
+    - cli.newGraphCmd
+    - cobra.Command
+
+  Invariants:
+    - SilenceUsage MUST be true so usage text does not flood stderr on routine errors
+    - Every new top-level subcommand MUST be attached here, not in main
+
+  OutOfScope:
+    - Per-command flag wiring (lives with each subcommand)
+    - Configuration loading (no viper in v1)
+
+  Scenario (happy-path): Help text lists known subcommands
+    When the binary is invoked with --help
+    Then 'graph' appears in the Available Commands list
+
+  Scenario (happy-path): Subcommand is dispatched
+    Given a known subcommand name on argv
+    When Execute runs
+    Then that subcommand's RunE is called
+
+  Scenario (negative): Unknown subcommand
+    Given an argv whose first positional is not a registered subcommand
+    When Execute runs
+    Then cobra prints help to stderr
+    And the process exits non-zero
