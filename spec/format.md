@@ -2,11 +2,11 @@
 
 This document is the authoring guide for `.trellis` sidecar files. It captures the conventions a human or agent must follow to produce sidecars that compose well across files, languages, and authors.
 
-It is **not** the grammar (that lives in [`tree-sitter-trellis/grammar.js`](https://github.com/norlinga/tree-sitter-trellis/blob/main/grammar.js), the normative source of truth). It is **not** the philosophy (that lives in the whitepaper, `trellis-plan/trellis-whitepaper.md`). It is **not** the locked design rationale (that lives in `trellis-plan/TREE_SITTER_DECISIONS.md`).
+It is **not** the grammar (that lives in [`tree-sitter-trellis/grammar.js`](https://github.com/norlinga/tree-sitter-trellis/blob/main/grammar.js), the normative source of truth). It is **not** the philosophy (that lives in the whitepaper at the project website). It is **not** the design rationale (that lives in the annotated comments inside [`tree-sitter-trellis/grammar.js`](https://github.com/norlinga/tree-sitter-trellis/blob/main/grammar.js)).
 
 This document covers what those three do not: **the authorial discipline you need so two people writing sidecars for similar code produce comparable results.**
 
-When this document and the decisions doc disagree, the decisions doc wins.
+When this document and the grammar disagree, the grammar wins.
 
 ---
 
@@ -264,8 +264,8 @@ These are the failure modes most often seen during the dogfood pass. Avoid them.
 
 ## Where to Look Next
 
-- **Format philosophy and motivation** — `trellis-plan/trellis-whitepaper.md`
-- **Locked grammar and design decisions** — `trellis-plan/TREE_SITTER_DECISIONS.md`
+- **Format philosophy and motivation** — the whitepaper at the project website
+- **Grammar and design decisions** — annotated comments in [`tree-sitter-trellis/grammar.js`](https://github.com/norlinga/tree-sitter-trellis/blob/main/grammar.js)
 - **Normative grammar** — `tree-sitter-trellis/grammar.js`
 - **Worked examples** — `tree-sitter-trellis/examples/`, `trellis/testdata/valid/`, and the `.trellis` sidecars co-located with the source files in this repo (which dogfood the format against the toolchain itself)
 

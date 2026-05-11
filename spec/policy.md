@@ -181,5 +181,5 @@ in policy rules.
 ## Where to look next
 
 - **Format reference** — `spec/format.md`
-- **Whitepaper philosophy** — `trellis-plan/trellis-whitepaper.md` §6
+- **Whitepaper philosophy** — the whitepaper at the project website, §6
 - **Example pack** — `policies/examples/architecture.trellis-policy`

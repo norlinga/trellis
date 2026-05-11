@@ -1,8 +1,10 @@
 // Package graph builds and queries the Provides:/Consumes: dependency graph
 // over a workspace of .trellis sidecar files.
 //
-// Decisions encoded here come from trellis-plan/TREE_SITTER_DECISIONS.md
-// (notably #6 — handle/description split) and the whitepaper §4.1.
+// The handle/description split and graph queries encoded here are
+// described in `spec/format.md` (the authoring guide) and surfaced as
+// annotated comments in the tree-sitter grammar at
+// `github.com/norlinga/tree-sitter-trellis`.
 package graph
 
 import "strings"

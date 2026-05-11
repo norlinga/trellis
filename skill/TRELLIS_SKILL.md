@@ -256,10 +256,9 @@ Done with a change?
 ## Where to look next
 
 - **Format reference + authoring conventions** — `trellis/spec/format.md`
-- **The whitepaper** (philosophy and motivation) —
-  `trellis-plan/trellis-whitepaper.md`
-- **Locked design decisions** —
-  `trellis-plan/TREE_SITTER_DECISIONS.md`
+- **The whitepaper** (philosophy and motivation) — the project website
+- **Grammar and design decisions** — annotated comments in
+  `tree-sitter-trellis/grammar.js`
 - **Worked example sidecars** —
   `tree-sitter-trellis/examples/`,
   `trellis/testdata/valid/`,

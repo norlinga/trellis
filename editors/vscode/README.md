@@ -1,9 +1,10 @@
 # Trellis for VS Code
 
 Minimal client extension that spawns `trellis lsp` and surfaces its
-diagnostics inline. Intentionally tiny — when the LSP is mature enough to
-warrant its own marketplace release, this scaffold will graduate into the
-`trellis-vscode` repository called out in `trellis-plan/PLAN.md`.
+diagnostics inline. Intentionally tiny — when the LSP is mature enough
+to warrant its own marketplace release, this scaffold will graduate
+into a standalone `trellis-vscode` repository with its own release
+lifecycle.
 
 ## Prerequisites
 

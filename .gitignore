@@ -1,3 +1,22 @@
+# Built binary
 /trellis
 /dist/
+
+# Go test artifacts
 *.test
+*.out
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local agent / tool config (per-developer)
+.claude/
+
+# VS Code extension build artifacts (also covered by editors/vscode/.gitignore;
+# repeated here for safety in case someone copies files around)
+editors/vscode/node_modules/
+editors/vscode/out/
+editors/vscode/*.vsix
