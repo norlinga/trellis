@@ -127,6 +127,40 @@ Feature: F
 }
 
 // ---------------------------------------------------------------------
+// SourceAnchorShape
+// ---------------------------------------------------------------------
+
+func TestSourceAnchorShape_AllowsLabelAndLine(t *testing.T) {
+	f := parseFixture(t, `Feature: Anchored
+  "valid anchors"
+
+  Provides:
+    - Decision:ExampleWorkflow.rule @source("label:DECISION-PARAGRAPH")
+    - Billing.Proration.calculate @source("line:42-68")
+`)
+	diags := (&lint.SourceAnchorShape{}).Check(f)
+	if len(diags) != 0 {
+		t.Fatalf("want 0 diags, got %v", diags)
+	}
+}
+
+func TestSourceAnchorShape_WarnsOnMalformedAnchor(t *testing.T) {
+	f := parseFixture(t, `Feature: Anchored
+  "bad anchor"
+
+  Provides:
+    - Decision:ExampleWorkflow.rule @source("line:68-42")
+`)
+	diags := (&lint.SourceAnchorShape{}).Check(f)
+	if len(diags) != 1 {
+		t.Fatalf("want 1 diag, got %d: %v", len(diags), diags)
+	}
+	if diags[0].Code != "source-anchor-shape" {
+		t.Fatalf("code = %q, want source-anchor-shape", diags[0].Code)
+	}
+}
+
+// ---------------------------------------------------------------------
 // ScenarioKindCanonical
 // ---------------------------------------------------------------------
 

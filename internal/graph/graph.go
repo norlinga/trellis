@@ -82,6 +82,19 @@ func Build(sidecars []*Sidecar) *Graph {
 // input set.
 func (g *Graph) Lookup(path string) *Sidecar { return g.byPath[path] }
 
+// ProvidersOf returns every sidecar that provides h. A handle should normally
+// have exactly one provider; multiple providers are tolerated here so callers
+// can surface duplicate-provider diagnostics deliberately.
+func (g *Graph) ProvidersOf(h Handle) []*Sidecar {
+	providers := g.providedBy[h]
+	if len(providers) == 0 {
+		return nil
+	}
+	out := make([]*Sidecar, len(providers))
+	copy(out, providers)
+	return out
+}
+
 // Deps returns the outbound edges from sc (what it consumes that resolved
 // to a producer). Returns nil if sc is not in the graph or has no
 // resolvable consumes.

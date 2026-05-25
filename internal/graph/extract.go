@@ -2,6 +2,7 @@ package graph
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	sitter "github.com/tree-sitter/go-tree-sitter"
@@ -67,7 +68,11 @@ func extractHandleEntries(block *sitter.Node, src []byte) []Entry {
 		if d := entry.ChildByFieldName("description"); d != nil {
 			desc = strings.TrimSpace(nodeText(d, src))
 		}
-		out = append(out, Entry{Handle: h, Description: desc})
+		var anchor *SourceAnchor
+		if a := entry.ChildByFieldName("source_anchor"); a != nil {
+			anchor = extractSourceAnchor(a, src)
+		}
+		out = append(out, Entry{Handle: h, SourceAnchor: anchor, Description: desc})
 	}
 	return out
 }
@@ -104,6 +109,48 @@ func extractHandle(node *sitter.Node, src []byte) (Handle, bool) {
 		}, true
 	}
 	return Handle{}, false
+}
+
+func extractSourceAnchor(node *sitter.Node, src []byte) *SourceAnchor {
+	valueNode := node.ChildByFieldName("value")
+	if valueNode == nil {
+		return nil
+	}
+	return ParseSourceAnchor(unquote(nodeText(valueNode, src)))
+}
+
+// ParseSourceAnchor materializes the opaque @source("kind:target") payload
+// into a SourceAnchor. Unknown kinds are preserved as Kind/Target pairs; line
+// anchors also expose numeric bounds for consumers that need ranges.
+func ParseSourceAnchor(value string) *SourceAnchor {
+	a := &SourceAnchor{Value: value}
+	kind, target, ok := strings.Cut(value, ":")
+	if !ok {
+		return a
+	}
+	a.Kind = kind
+	a.Target = target
+	if kind == "line" {
+		parseLineAnchor(a, target)
+	}
+	return a
+}
+
+func parseLineAnchor(a *SourceAnchor, target string) {
+	start, end, ok := strings.Cut(target, "-")
+	if !ok {
+		if n, err := strconv.Atoi(target); err == nil {
+			a.StartLine = n
+			a.EndLine = n
+		}
+		return
+	}
+	s, errS := strconv.Atoi(start)
+	e, errE := strconv.Atoi(end)
+	if errS == nil && errE == nil {
+		a.StartLine = s
+		a.EndLine = e
+	}
 }
 
 func nodeText(n *sitter.Node, src []byte) string {

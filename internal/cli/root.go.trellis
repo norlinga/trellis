@@ -11,6 +11,7 @@ Feature: CLI Root Command
 
   Consumes:
     - cli.newGraphCmd
+    - cli.newLocateCmd
     - cobra.Command
 
   Invariants:

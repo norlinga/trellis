@@ -13,10 +13,17 @@ Feature: Handle Type
     - graph.PrefixedHandle
     - graph.Handle.String
     - graph.Handle.Root
+    - graph.ParseHandleLiteral
+
+  Consumes:
+    - strings.Cut
+    - strings.IndexByte
+    - strings.Split
 
   Invariants:
     - Handle equality MUST be bit-for-bit on Kind, Prefix, and Path — case-sensitive
     - String SHALL round-trip with the parser's tokenization for both kinds
+    - ParseHandleLiteral MUST validate command-line handle spelling without case folding or other normalization
     - 'Subscription.Create' and 'subscription.create' MUST NOT compare equal
     - Handles SHALL NOT be normalized, lowercased, or otherwise canonicalized at construction
 

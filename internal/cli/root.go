@@ -14,6 +14,7 @@ func NewRootCmd() *cobra.Command {
 		SilenceErrors: true,
 	}
 	root.AddCommand(newGraphCmd())
+	root.AddCommand(newLocateCmd())
 	root.AddCommand(newLintCmd())
 	root.AddCommand(newLspCmd())
 	return root

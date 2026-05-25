@@ -79,6 +79,9 @@ func TestRootHelpListsGraphSubcommand(t *testing.T) {
 	if !strings.Contains(out, "graph") {
 		t.Fatalf("--help missing 'graph' subcommand:\n%s", out)
 	}
+	if !strings.Contains(out, "locate") {
+		t.Fatalf("--help missing 'locate' subcommand:\n%s", out)
+	}
 }
 
 func TestGraphHelpListsAllSubcommands(t *testing.T) {
@@ -262,6 +265,55 @@ func TestGraphOrphans(t *testing.T) {
 	lines := splitLines(out)
 	if len(lines) != 1 || !strings.HasSuffix(lines[0], "p.go.trellis") {
 		t.Fatalf("expected exactly p.go.trellis as orphan, got: %v", lines)
+	}
+}
+
+// ---------------------------------------------------------------------
+// locate
+// ---------------------------------------------------------------------
+
+func TestLocateJSON(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, "example.cbl"), "       IDENTIFICATION DIVISION.\n")
+	writeFile(t, filepath.Join(dir, "example.cbl.trellis"), `Feature: Example Workflow
+  "generic decision"
+
+  Provides:
+    - Decision:ExampleWorkflow.rule @source("label:DECISION-PARAGRAPH") determines outcome
+`)
+
+	out, _, err := run(t, "locate", "Decision:ExampleWorkflow.rule", "--json", dir)
+	if err != nil {
+		t.Fatalf("locate: %v\n%s", err, out)
+	}
+	for _, want := range []string{
+		`"handle": "Decision:ExampleWorkflow.rule"`,
+		`"source_path": "` + filepath.Join(dir, "example.cbl") + `"`,
+		`"value": "label:DECISION-PARAGRAPH"`,
+		`"kind": "label"`,
+		`"target": "DECISION-PARAGRAPH"`,
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("locate JSON missing %q:\n%s", want, out)
+		}
+	}
+}
+
+func TestLocateErrorsWhenProviderHasNoAnchor(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, "example.cbl.trellis"), `Feature: Example Workflow
+  "generic decision"
+
+  Provides:
+    - Decision:ExampleWorkflow.rule
+`)
+
+	_, _, err := run(t, "locate", "Decision:ExampleWorkflow.rule", dir)
+	if err == nil {
+		t.Fatalf("expected missing-anchor error")
+	}
+	if !strings.Contains(err.Error(), "no source anchor") {
+		t.Fatalf("error = %v, want no source anchor", err)
 	}
 }
 

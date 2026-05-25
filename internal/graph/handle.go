@@ -50,3 +50,57 @@ func (h Handle) Root() string {
 	}
 	return h.Path
 }
+
+// ParseHandleLiteral parses the canonical command-line spelling of a Trellis
+// handle. It mirrors the grammar's handle shapes without normalizing the
+// input: case, prefix, and path segments are preserved exactly.
+func ParseHandleLiteral(s string) (Handle, bool) {
+	if prefix, path, ok := strings.Cut(s, ":"); ok {
+		if !validIdentifier(prefix) || !validIdentifierPath(path) {
+			return Handle{}, false
+		}
+		return Handle{Kind: PrefixedHandle, Prefix: prefix, Path: path}, true
+	}
+	if !validIdentifierPath(s) {
+		return Handle{}, false
+	}
+	return Handle{Kind: PathHandle, Path: s}, true
+}
+
+func validIdentifierPath(s string) bool {
+	if s == "" {
+		return false
+	}
+	for _, part := range strings.Split(s, ".") {
+		if !validIdentifier(part) {
+			return false
+		}
+	}
+	return true
+}
+
+func validIdentifier(s string) bool {
+	if s == "" {
+		return false
+	}
+	for i, r := range s {
+		if i == 0 {
+			if !isASCIILetter(r) {
+				return false
+			}
+			continue
+		}
+		if !isASCIILetter(r) && !isASCIIDigit(r) && r != '_' && r != '-' {
+			return false
+		}
+	}
+	return true
+}
+
+func isASCIILetter(r rune) bool {
+	return (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z')
+}
+
+func isASCIIDigit(r rune) bool {
+	return r >= '0' && r <= '9'
+}

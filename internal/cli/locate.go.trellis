@@ -1,0 +1,39 @@
+@owner: TrellisProject
+@stability: experimental
+@since: 2026-05-24
+@reviewed: 2026-05-24
+@allow-many-consumes: "CLI command coordinator; the command genuinely joins graph loading, exact handle parsing, provider lookup, and output rendering"
+
+Feature: Locate Command
+  "Resolves a provided Trellis handle to the paired source file and optional source anchor."
+
+  Provides:
+    - cli.newLocateCmd
+
+  Consumes:
+    - graph.Load
+    - graph.Handle
+    - graph.ParseHandleLiteral
+    - graph.Graph
+    - graph.Sidecar
+    - graph.Entry
+    - cobra.Command
+
+  Invariants:
+    - Locate MUST use exact handle matching and MUST NOT normalize case, prefixes, or path segments
+    - Locate MUST report a clear error when the handle is missing, duplicated, or lacks a source anchor
+    - JSON output MUST expose semantic fields, not tree-sitter AST shape
+
+  OutOfScope:
+    - Verifying that label anchors exist inside language-specific source files
+    - Guessing an implementation location when no source anchor is declared
+
+  Scenario (happy-path): Locate anchored provider
+    Given a workspace sidecar provides 'Decision:ExampleWorkflow.rule' with @source("label:DECISION-PARAGRAPH")
+    When 'trellis locate Decision:ExampleWorkflow.rule --json' runs
+    Then stdout includes the provider sidecar path, source path, and anchor value
+
+  Scenario (negative): Missing anchor
+    Given a workspace sidecar provides 'Decision:ExampleWorkflow.rule' without @source
+    When 'trellis locate Decision:ExampleWorkflow.rule' runs
+    Then the command exits non-zero and says the provider has no source anchor

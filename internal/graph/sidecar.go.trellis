@@ -9,6 +9,7 @@ Feature: Sidecar Type
   Provides:
     - graph.Sidecar
     - graph.Entry
+    - graph.SourceAnchor
     - graph.SourcePathFor
 
   Consumes:
@@ -16,6 +17,7 @@ Feature: Sidecar Type
 
   Invariants:
     - Sidecar MUST hold only fields the graph layer reads — invariants, out-of-scope, frontmatter, and scenarios are deliberately omitted
+    - Entry.SourceAnchor MUST remain separate from Entry.Handle so implementation location never changes graph identity
     - Entry.Description MUST be preserved verbatim from the source (decision #6 — opaque text, never interpreted)
     - SourcePathFor MUST return an empty string for paths not ending in '.trellis' (caller treats as malformed)
 

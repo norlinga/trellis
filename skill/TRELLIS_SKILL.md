@@ -94,6 +94,7 @@ Use this shape:
 ```trellis
 Provides:
   - Module.Class.method_name
+  - Module.Class.method_name @source("label:METHOD_LABEL")
   - Module.Class.method_name -> ReturnType
   - ComponentNameView.render
 
@@ -115,6 +116,10 @@ Core rules:
 - **Do not use language sigils or placeholders in handles.** Avoid `@team`,
   `Foo#bar`, `Foo::Bar`, `Onboarding::<StepName>Form`, route strings, and
   numeric path segments such as `Files.204`.
+- **Keep source anchors separate from handles.** If you need an implementation
+  location, add `@source("label:<name>")` or `@source("line:<start>-<end>")`
+  after the handle. Do not encode file paths, line numbers, COBOL paragraphs,
+  or language symbols into the handle unless they are truly the contract name.
 - **Do not fake empty dependencies.** If there are no external contract
   dependencies, omit `Consumes:`. Do not write `Nothing external`,
   `None`, or `N/A`; those are parsed as handles.
@@ -326,6 +331,7 @@ flag details.
 | `trellis graph downstream <file.trellis>` | Transitive closure of `dependents` | "If I delete this, what else breaks?" |
 | `trellis graph orphans <paths>` | Sidecars whose Provides have no consumers | Clean-up audit; candidates for removal |
 | `trellis graph parse <file.trellis>` | Print the parsed S-expression tree | Debugging a malformed sidecar |
+| `trellis locate <handle> [paths]` | Resolve a provided handle to its paired source path and `@source(...)` anchor | "Where is this contract implemented?" |
 | `trellis lint <paths>` | Run all rules, return non-zero on errors | Before declaring a change complete; in CI |
 | `trellis lsp` | Start the Language Server over stdio | The editor uses this; you generally don't invoke it directly |
 

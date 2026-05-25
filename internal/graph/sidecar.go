@@ -3,20 +3,35 @@ package graph
 import "strings"
 
 // Entry is one item in a Provides: or Consumes: list. The handle is the
-// structured part the graph cares about; the description is preserved
-// verbatim for hover docs and lint diagnostics, never interpreted.
+// structured part the graph cares about; the source anchor is optional
+// implementation-location metadata; the description is preserved verbatim
+// for hover docs and lint diagnostics, never interpreted.
 type Entry struct {
-	Handle      Handle
-	Description string // verbatim, may be empty
+	Handle       Handle
+	SourceAnchor *SourceAnchor
+	Description  string // verbatim, may be empty
+}
+
+// SourceAnchor points from a Trellis handle to an implementation location in
+// the paired source file. Value is the exact quoted payload from @source("...").
+// Parsed fields are best-effort conveniences for CLI/LSP consumers; Value
+// remains the stable round-tripped representation.
+type SourceAnchor struct {
+	Value  string
+	Kind   string
+	Target string
+
+	StartLine int
+	EndLine   int
 }
 
 // Sidecar is one parsed .trellis file as the graph sees it. Linter-only
 // concerns (Invariants, OutOfScope, frontmatter) are deliberately omitted
 // — they're not load-bearing for graph construction.
 type Sidecar struct {
-	Path        string // absolute path to the .trellis file
-	SourcePath  string // implied source-file path (Path with .trellis suffix removed)
-	FeatureName string
+	Path           string // absolute path to the .trellis file
+	SourcePath     string // implied source-file path (Path with .trellis suffix removed)
+	FeatureName    string
 	FeatureSummary string
 
 	Provides []Entry

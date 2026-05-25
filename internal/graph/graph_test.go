@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/norlinga/trellis/internal/graph"
+	"github.com/norlinga/trellis/internal/parser"
 )
 
 func fixtureDir(t *testing.T) string {
@@ -150,6 +151,49 @@ func TestHandleExtraction(t *testing.T) {
 	// line (decision #6: opaque, never interpreted).
 	if got := cs.Provides[0].Description; got == "" || !contains(got, "raises PaymentError") {
 		t.Fatalf("provides[0] description = %q, want non-empty containing 'raises PaymentError'", got)
+	}
+}
+
+func TestSourceAnchorExtraction(t *testing.T) {
+	src := []byte(`Feature: Anchored
+  "source anchor extraction"
+
+  Provides:
+    - Billing.Proration.calculate @source("line:42-68") -> Money
+`)
+	tree, err := parser.Parse(src)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	defer tree.Close()
+	if tree.RootNode().HasError() {
+		t.Fatalf("parse errors:\n%s", tree.RootNode().ToSexp())
+	}
+	sc, err := graph.Extract(tree, src, "billing.go.trellis")
+	if err != nil {
+		t.Fatalf("Extract: %v", err)
+	}
+	if len(sc.Provides) != 1 {
+		t.Fatalf("provides = %d, want 1", len(sc.Provides))
+	}
+	entry := sc.Provides[0]
+	if got, want := entry.Handle.String(), "Billing.Proration.calculate"; got != want {
+		t.Fatalf("handle = %q, want %q", got, want)
+	}
+	if entry.SourceAnchor == nil {
+		t.Fatalf("SourceAnchor = nil")
+	}
+	if got, want := entry.SourceAnchor.Value, "line:42-68"; got != want {
+		t.Fatalf("anchor value = %q, want %q", got, want)
+	}
+	if got, want := entry.SourceAnchor.StartLine, 42; got != want {
+		t.Fatalf("StartLine = %d, want %d", got, want)
+	}
+	if got, want := entry.SourceAnchor.EndLine, 68; got != want {
+		t.Fatalf("EndLine = %d, want %d", got, want)
+	}
+	if got := entry.Description; got != "-> Money" {
+		t.Fatalf("description = %q, want %q", got, "-> Money")
 	}
 }
 

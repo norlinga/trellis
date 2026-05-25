@@ -11,6 +11,7 @@ Feature: Dependency Graph
     - graph.Graph
     - graph.Edge
     - graph.UnresolvedConsume
+    - graph.Graph.ProvidersOf
     - graph.Graph.Lookup
     - graph.Graph.Deps
     - graph.Graph.Dependents

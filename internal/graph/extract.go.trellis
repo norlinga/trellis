@@ -9,12 +9,14 @@ Feature: AST Projection
 
   Provides:
     - graph.Extract
+    - graph.ParseSourceAnchor
 
   Consumes:
     - sitter.Tree
     - sitter.Node
     - graph.Sidecar
     - graph.Entry
+    - graph.SourceAnchor
     - graph.Handle
     - graph.HandleKind
     - graph.SourcePathFor
@@ -22,6 +24,7 @@ Feature: AST Projection
   Invariants:
     - Extract MUST NOT be called on a tree where HasError() is true — the parser is the source of truth for shape
     - Extract SHALL produce only the Provides and Consumes lists; other context blocks are linter territory
+    - Source anchors MUST be extracted into Entry.SourceAnchor without modifying Entry.Handle
     - Description text MUST be preserved verbatim (whitespace-trimmed) and never interpreted
     - Extract SHOULD silently skip AST nodes it does not recognize, on the principle that the grammar may extend without breaking the extractor
 
@@ -40,6 +43,11 @@ Feature: AST Projection
     Given a handle_entry whose handle is prefixed_handle Event:subscription.created
     When Extract processes the tree
     Then the Sidecar's Provides slice contains an Entry with Kind=PrefixedHandle, Prefix='Event', Path='subscription.created'
+
+  Scenario (happy-path): Source anchor entry
+    Given a Provides entry with @source("line:42-68")
+    When Extract processes the tree
+    Then the Entry has SourceAnchor.Kind='line' and StartLine=42 and EndLine=68
 
   Scenario (negative): Tree without a feature node
     Given a tree whose root has no 'feature' field

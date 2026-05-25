@@ -1,0 +1,34 @@
+@owner: TrellisProject
+@stability: experimental
+@since: 2026-05-24
+@reviewed: 2026-05-24
+
+Feature: Source Anchor Lint Rule
+  "Validates the basic shape of @source(...) anchor metadata without interpreting language-specific source files."
+
+  Provides:
+    - lint.SourceAnchorShape
+
+  Invariants:
+    - Source anchor validation MUST NOT mutate or normalize handle identity
+    - Source anchors MUST use 'kind:target' shape so CLI and LSP consumers can expose stable semantic fields
+    - The 'line' anchor kind MUST use positive one-indexed line numbers or ranges
+
+  OutOfScope:
+    - Checking whether a label exists in the paired source file
+    - Requiring every Provides entry to declare a source anchor
+
+  Scenario (happy-path): Label anchor
+    Given a Provides entry with @source("label:DECISION-PARAGRAPH")
+    When SourceAnchorShape checks the file
+    Then no diagnostic is emitted
+
+  Scenario (happy-path): Line range anchor
+    Given a Provides entry with @source("line:42-68")
+    When SourceAnchorShape checks the file
+    Then no diagnostic is emitted
+
+  Scenario (negative): Backwards line range
+    Given a Provides entry with @source("line:68-42")
+    When SourceAnchorShape checks the file
+    Then it emits 'source-anchor-shape'

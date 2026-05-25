@@ -165,6 +165,7 @@ func PerFileLinter() *Linter {
 	l.AddRule(&MissingInvariants{})
 	l.AddRule(&ScenarioCount{Warn: 10, Error: 15})
 	l.AddRule(&ConsumesCount{Warn: 5, Error: 8})
+	l.AddRule(&SourceAnchorShape{})
 	l.AddRule(NewStaleReviewed())
 	return l
 }

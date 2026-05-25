@@ -173,6 +173,26 @@ These are short, opinionated rules for parts of the format that the grammar perm
 - For prefix-typed handles (`Event:`, `Trait:`, etc.), the prefix names the *kind* of thing being declared, not its category. Do not invent prefixes for taxonomy purposes — the handle path is for that.
 - See decision #6 for the full handle/description split rules.
 
+### Source anchors
+
+A `Provides:` entry may attach an optional implementation locator after the
+handle and before the human-readable description:
+
+```trellis
+Provides:
+  - Decision:ExampleWorkflow.rule @source("label:DECISION-PARAGRAPH") determines the outcome
+  - Billing.Proration.calculate @source("line:42-68") -> Money
+```
+
+The handle remains the graph identity. The `@source(...)` value is location
+metadata for tools such as `trellis locate`; it is not part of handle matching
+and does not change case-sensitive handle semantics.
+
+Use `label:<name>` for file-relative labels, paragraphs, sections, symbols, or
+other named implementation anchors. Use `line:<n>` or `line:<start>-<end>` for
+line anchors. Other `kind:target` forms are reserved for project- or
+language-specific locators.
+
 ### Scenarios
 
 - One canonical kind per scenario; use the canonical form, not an alias. The linter will suggest the canonical when you write an alias.
