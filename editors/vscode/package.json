@@ -25,8 +25,13 @@
     "languages": [
       {
         "id": "trellis",
-        "aliases": ["Trellis", "trellis"],
-        "extensions": [".trellis"],
+        "aliases": [
+          "Trellis",
+          "trellis"
+        ],
+        "extensions": [
+          ".trellis"
+        ],
         "configuration": "./language-configuration.json"
       }
     ],
@@ -47,7 +52,11 @@
         },
         "trellis.trace.server": {
           "type": "string",
-          "enum": ["off", "messages", "verbose"],
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
           "default": "off",
           "description": "Trace LSP traffic between VS Code and trellis lsp."
         }
@@ -57,7 +66,8 @@
   "scripts": {
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "vscode:prepublish": "npm run compile"
+    "bundle": "esbuild src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+    "vscode:prepublish": "npm run bundle"
   },
   "dependencies": {
     "vscode-languageclient": "^9.0.1"
@@ -65,6 +75,7 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.85.0",
+    "esbuild": "^0.28.0",
     "typescript": "^5.3.0"
   }
 }

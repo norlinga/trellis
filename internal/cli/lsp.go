@@ -7,7 +7,7 @@ import (
 )
 
 func newLspCmd() *cobra.Command {
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Use:   "lsp",
 		Short: "Run the Trellis Language Server over stdio",
 		Long: "Starts an LSP server on stdin/stdout. Editors that support LSP (Neovim, " +
@@ -18,4 +18,8 @@ func newLspCmd() *cobra.Command {
 			return lsp.New().Run()
 		},
 	}
+	// --stdio is a conventional no-op flag that LSP clients (e.g. vscode-languageclient)
+	// pass to signal stdio transport. trellis lsp always uses stdio, so we accept and ignore it.
+	cmd.Flags().Bool("stdio", false, "use stdio transport (default and only mode; accepted for LSP client compatibility)")
+	return cmd
 }
