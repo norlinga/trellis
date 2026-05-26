@@ -25,7 +25,7 @@ npm run compile
 
 # Option A — sideload via vsce
 npx @vscode/vsce package
-code --install-extension trellis-vscode-0.1.0.vsix
+code --install-extension trellis-vscode-0.1.1.vsix
 
 # Option B — load unpacked (for development)
 # In VS Code: F5 from this folder launches an Extension Development Host
