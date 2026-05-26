@@ -7,11 +7,11 @@
     { "include": "#comment" },
     { "include": "#frontmatter" },
     { "include": "#feature-header" },
+    { "include": "#feature-summary" },
+    { "include": "#handle-block" },
+    { "include": "#prose-block" },
     { "include": "#scenario-header" },
-    { "include": "#block-keyword" },
-    { "include": "#step" },
-    { "include": "#handle-entry" },
-    { "include": "#prose-entry" }
+    { "include": "#step" }
   ],
   "repository": {
     "comment": {
@@ -24,11 +24,7 @@
       "captures": {
         "1": { "name": "entity.name.tag.frontmatter.trellis" },
         "2": { "name": "punctuation.separator.key-value.trellis" },
-        "3": {
-          "patterns": [
-            { "include": "#frontmatter-value" }
-          ]
-        }
+        "3": { "patterns": [{ "include": "#frontmatter-value" }] }
       }
     },
     "frontmatter-value": {
@@ -39,7 +35,7 @@
           "begin": "\\[",
           "end": "\\]",
           "beginCaptures": { "0": { "name": "punctuation.section.brackets.begin.trellis" } },
-          "endCaptures":   { "0": { "name": "punctuation.section.brackets.end.trellis" } },
+          "endCaptures": { "0": { "name": "punctuation.section.brackets.end.trellis" } },
           "patterns": [
             { "match": "[A-Za-z][A-Za-z0-9_]*", "name": "entity.name.type.trellis" },
             { "match": ",", "name": "punctuation.separator.trellis" }
@@ -57,6 +53,69 @@
         "3": { "name": "entity.name.section.feature.trellis" }
       }
     },
+    "feature-summary": {
+      "match": "^\\s+(\"[^\"\\n]*\")\\s*$",
+      "captures": { "1": { "name": "string.quoted.double.trellis" } }
+    },
+
+    "handle-block": {
+      "begin": "^\\s+(Provides|Consumes)(:)\\s*$",
+      "beginCaptures": {
+        "1": { "name": "keyword.control.block.trellis" },
+        "2": { "name": "punctuation.separator.trellis" }
+      },
+      "end": "^(?!\\s*-\\s)(?=\\s*\\S)",
+      "patterns": [{ "include": "#handle-entry" }]
+    },
+    "prose-block": {
+      "begin": "^\\s+(Invariants|OutOfScope)(:)\\s*$",
+      "beginCaptures": {
+        "1": { "name": "keyword.control.block.trellis" },
+        "2": { "name": "punctuation.separator.trellis" }
+      },
+      "end": "^(?!\\s*-\\s)(?=\\s*\\S)",
+      "patterns": [{ "include": "#prose-entry" }]
+    },
+
+    "handle-entry": {
+      "begin": "^\\s*(-)\\s+(?:([A-Za-z][A-Za-z0-9_-]*)(:)\\s*)?((?:[A-Za-z_][A-Za-z0-9_]*)(?:\\.[A-Za-z_][A-Za-z0-9_]*)*)?",
+      "beginCaptures": {
+        "1": { "name": "punctuation.definition.list.trellis" },
+        "2": { "name": "support.class.handle-prefix.trellis" },
+        "3": { "name": "punctuation.separator.handle.trellis" },
+        "4": { "name": "entity.name.function.handle-path.trellis" }
+      },
+      "end": "$",
+      "patterns": [
+        { "include": "#source-anchor" },
+        { "include": "#return-arrow" },
+        { "include": "#rfc2119" },
+        { "include": "#single-quoted-literal" }
+      ]
+    },
+    "prose-entry": {
+      "begin": "^\\s*(-)\\s+",
+      "beginCaptures": { "1": { "name": "punctuation.definition.list.trellis" } },
+      "end": "$",
+      "patterns": [
+        { "include": "#rfc2119" },
+        { "include": "#single-quoted-literal" }
+      ]
+    },
+
+    "source-anchor": {
+      "match": "(@source)(\\()(\"[^\"]*\")(\\))",
+      "captures": {
+        "1": { "name": "keyword.other.source-anchor.trellis" },
+        "2": { "name": "punctuation.section.parens.begin.trellis" },
+        "3": { "name": "string.quoted.double.trellis" },
+        "4": { "name": "punctuation.section.parens.end.trellis" }
+      }
+    },
+    "return-arrow": {
+      "match": "->",
+      "name": "keyword.operator.return.trellis"
+    },
 
     "scenario-header": {
       "match": "^\\s+(Scenario)(?:\\s*(\\()([a-z][a-z0-9-]*)(\\)))?(:)\\s*(.+)$",
@@ -67,14 +126,6 @@
         "4": { "name": "punctuation.section.parens.end.trellis" },
         "5": { "name": "punctuation.separator.trellis" },
         "6": { "name": "entity.name.section.scenario.trellis" }
-      }
-    },
-
-    "block-keyword": {
-      "match": "^\\s+(Provides|Consumes|Invariants|OutOfScope)(:)\\s*$",
-      "captures": {
-        "1": { "name": "keyword.control.block.trellis" },
-        "2": { "name": "punctuation.separator.trellis" }
       }
     },
 
@@ -97,77 +148,6 @@
     "single-quoted-literal": {
       "match": "'[^'\\n]*'",
       "name": "string.quoted.single.trellis"
-    },
-
-    "handle-entry": {
-      "match": "^\\s+(-)\\s+(.+?)\\s*$",
-      "captures": {
-        "1": { "name": "punctuation.definition.list.trellis" },
-        "2": {
-          "patterns": [
-            { "include": "#handle-then-description" }
-          ]
-        }
-      }
-    },
-    "handle-then-description": {
-      "patterns": [
-        {
-          "match": "^([A-Za-z][A-Za-z0-9_-]*)(:)\\s*([A-Za-z_][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)*)(.*)$",
-          "captures": {
-            "1": { "name": "support.class.handle-prefix.trellis" },
-            "2": { "name": "punctuation.separator.handle.trellis" },
-            "3": { "name": "entity.name.function.handle-path.trellis" },
-            "4": {
-              "patterns": [
-                { "include": "#description-tail" }
-              ]
-            }
-          }
-        },
-        {
-          "match": "^([A-Z][A-Za-z0-9_]*(?:\\.[A-Za-z_][A-Za-z0-9_]*)+)(.*)$",
-          "captures": {
-            "1": { "name": "entity.name.function.handle-path.trellis" },
-            "2": {
-              "patterns": [
-                { "include": "#description-tail" }
-              ]
-            }
-          }
-        },
-        {
-          "match": "^([A-Z][A-Za-z0-9_]*)(.*)$",
-          "captures": {
-            "1": { "name": "entity.name.type.handle.trellis" },
-            "2": {
-              "patterns": [
-                { "include": "#description-tail" }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    "description-tail": {
-      "patterns": [
-        { "include": "#rfc2119" },
-        { "include": "#single-quoted-literal" },
-        { "match": "->", "name": "keyword.operator.return.trellis" }
-      ]
-    },
-
-    "prose-entry": {
-      "match": "^\\s+(-)\\s+(.+)$",
-      "captures": {
-        "1": { "name": "punctuation.definition.list.trellis" },
-        "2": {
-          "patterns": [
-            { "include": "#rfc2119" },
-            { "include": "#single-quoted-literal" }
-          ]
-        }
-      }
     }
   }
 }
